@@ -67,6 +67,7 @@ b1 = np.sum((np.arange(1, N+1) - 1) * sorted_speeds) / (N * (N-1))
 alpha = 2*b1- b0*np.log(2)
 beta = b0 - gam * alpha
 U50 = alpha * np.log(T/T_0) + beta  #Maybe try T/t_0 = 50
+
 print(f"PWM Method:")
 print(f"α with PWM: {alpha}")
 print(f"β with PWM: {beta}")
@@ -195,12 +196,31 @@ B = 4.5
 # GDL function
 mean_u_sector_sprogo = np.zeros((12, 1))
 
-for i in range(12):
-    mean_u_sector_sprogo[i] = np.mean(
-        top_speeds_by_year[(sprog['wind_direction'] < direction_sectors[i + 1]) & (sprog['wind_direction'] >= direction_sectors[i])])
+# for i in range(12):
+#    mean_u_sector_sprogo[i] = np.mean(
+#        top_speeds_by_year[(sprog['wind_direction'] < direction_sectors[i + 1]) & (sprog['wind_direction'] >= direction_sectors[i])])
 
+for i in range(12):
+    # Filter data for the current sector
+    filtered_data = sprog[(sprog['wind_direction'] < direction_sectors[i + 1]) &
+                          (sprog['wind_direction'] >= direction_sectors[i])]
+
+    if filtered_data.empty:
+        mean_u_sector_sprogo[i] = np.nan
+    else:
+        # Group by year and find the max wind_speed of each year
+        yearly_max = filtered_data.groupby('year')['wind_speed'].max()
+
+        # Sort the yearly max values and take the top 5 highest values
+        top_5_max = yearly_max.nlargest(5)
+
+        # Compute the mean of the top 5 max values
+        mean_u_sector_sprogo[i] = top_5_max.mean()
+
+print('stop')
 
 def gdl(mean_u, z_0):
+
     u_star = mean_u * vonKarman / (np.log(z_measurement / z_0_water))
     u_g = u_star / vonKarman * (np.log((u_star / coriolis_parameter) / z_0_water) - A)
     v_g = - B * u_star / vonKarman
@@ -245,8 +265,11 @@ for i in range(12):
 # Adjust N to 5, because working with top 5 speeds per year
 N = 5
 # Sort the adjusted wind speeds for Nyborg and Korsor
-sorted_speeds_nyborg = np.sort(u_nyborg.flatten())
-sorted_speeds_korsor = np.sort(u_korsor.flatten())
+#sorted_speeds_nyborg = np.sort(u_nyborg.flatten()) OLD
+#sorted_speeds_korsor = np.sort(u_korsor.flatten()) OLD
+sorted_speeds_nyborg = np.sort(u_nyborg.flatten())[-N:][::-1]  # Select top N speeds
+sorted_speeds_korsor = np.sort(u_korsor.flatten())[-N:][::-1]
+
 
 mean_WS_nyborg = np.mean(sorted_speeds_nyborg)
 b0_nyborg = mean_WS_nyborg
