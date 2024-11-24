@@ -64,7 +64,7 @@ sorted_speeds = np.sort(windspeed)
 b0 = mean_WS          # b0 is the mean of the sorted data
 b1 = np.sum((np.arange(1, N+1) - 1) * sorted_speeds) / (N * (N-1))
 
-alpha = 2*b1- b0*np.log(2)
+alpha = (2*b1- b0)/np.log(2)
 beta = b0 - gam * alpha
 U50 = alpha * np.log(T/T_0) + beta  #Maybe try T/t_0 = 50
 
@@ -216,8 +216,7 @@ for i in range(12):
 
         # Compute the mean of the top 5 max values
         mean_u_sector_sprogo[i] = top_5_max.mean()
-
-print('stop')
+        #mean_u_sector_sprogo[i] = yearly_max.mean()
 
 def gdl(mean_u, z_0):
 
@@ -275,7 +274,7 @@ mean_WS_nyborg = np.mean(sorted_speeds_nyborg)
 b0_nyborg = mean_WS_nyborg
 b1_nyborg = np.sum((np.arange(1, N+1) - 1) * sorted_speeds_nyborg) / (N * (N-1))
 
-alpha_nyborg = 2 * b1_nyborg - b0_nyborg * np.log(2)
+alpha_nyborg = -1*(2 * b1_nyborg - b0_nyborg) / np.log(2)
 beta_nyborg = b0_nyborg - gam * alpha_nyborg
 U50_nyborg = alpha_nyborg * np.log(T / T_0) + beta_nyborg
 
@@ -290,7 +289,7 @@ mean_WS_korsor = np.mean(sorted_speeds_korsor)
 b0_korsor = mean_WS_korsor
 b1_korsor = np.sum((np.arange(1, N+1) - 1) * sorted_speeds_korsor) / (N * (N-1))
 
-alpha_korsor = 2 * b1_korsor - b0_korsor * np.log(2)
+alpha_korsor = -1*(2 * b1_korsor - b0_korsor) / np.log(2)
 beta_korsor = b0_korsor - gam * alpha_korsor
 U50_korsor = alpha_korsor * np.log(T / T_0) + beta_korsor
 
